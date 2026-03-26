@@ -31,6 +31,7 @@ export type Database = {
           social_handle?: string | null
           updated_at?: string
         }
+        Relationships: []
       }
       pin_inventory: {
         Row: {
@@ -56,6 +57,7 @@ export type Database = {
           wants_it?: boolean
           updated_at?: string
         }
+        Relationships: []
       }
       connect_requests: {
         Row: {
@@ -78,11 +80,18 @@ export type Database = {
           status?: ConnectRequestStatus
           updated_at?: string
         }
+        Relationships: []
       }
     }
-    Views: Record<string, never>
-    Functions: Record<string, never>
-    Enums: Record<string, never>
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
   }
 }
 
