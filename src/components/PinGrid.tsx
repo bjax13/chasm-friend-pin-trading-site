@@ -1,6 +1,6 @@
 'use client'
 
-import { useOptimistic, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { PIN_NAMES } from '@/lib/pins'
 import { upsertPinInventory } from '@/actions/inventory'
 import type { PinInventory, PinName } from '@/lib/types'
@@ -121,31 +121,42 @@ function PinCard({ pinName, state, onToggleHas, onToggleWants, disabled }: PinCa
 
 export default function PinGrid({ pins, disabled = false }: PinGridProps) {
   const [isPending, startTransition] = useTransition()
+  const [inventoryMap, setInventoryMap] = useState<InventoryMap>(() =>
+    buildInventoryMap(pins)
+  )
 
-  const [optimisticInventory, updateOptimistic] = useOptimistic<
-    InventoryMap,
-    { pinName: PinName; hasIt: boolean; wantsIt: boolean }
-  >(buildInventoryMap(pins), (current, { pinName, hasIt, wantsIt }) => ({
-    ...current,
-    [pinName]: { hasIt, wantsIt },
-  }))
+  useEffect(() => {
+    setInventoryMap(buildInventoryMap(pins))
+  }, [pins])
 
-  function handleToggle(
-    pinName: PinName,
-    field: 'hasIt' | 'wantsIt'
-  ) {
-    const current = optimisticInventory[pinName]
-    const next =
-      field === 'hasIt'
-        ? { hasIt: !current.hasIt, wantsIt: current.wantsIt }
-        : { hasIt: current.hasIt, wantsIt: !current.wantsIt }
+  function handleToggle(pinName: PinName, field: 'hasIt' | 'wantsIt') {
+    let previous: InventoryMap | undefined
+    let next: PinState | undefined
+
+    setInventoryMap((prev) => {
+      previous = prev
+      const current = prev[pinName]
+      next =
+        field === 'hasIt'
+          ? { hasIt: !current.hasIt, wantsIt: current.wantsIt }
+          : { hasIt: current.hasIt, wantsIt: !current.wantsIt }
+      return { ...prev, [pinName]: next }
+    })
+
+    if (previous === undefined || next === undefined) return
+
+    const previousMap = previous
+    const nextPin = next
 
     startTransition(async () => {
-      // Optimistically apply the change immediately
-      updateOptimistic({ pinName, hasIt: next.hasIt, wantsIt: next.wantsIt })
-
-      // Persist to the server
-      await upsertPinInventory(pinName, next.hasIt, next.wantsIt)
+      const result = await upsertPinInventory(
+        pinName,
+        nextPin.hasIt,
+        nextPin.wantsIt
+      )
+      if ('error' in result) {
+        setInventoryMap(previousMap)
+      }
     })
   }
 
@@ -157,7 +168,7 @@ export default function PinGrid({ pins, disabled = false }: PinGridProps) {
         <PinCard
           key={pinName}
           pinName={pinName}
-          state={optimisticInventory[pinName]}
+          state={inventoryMap[pinName]}
           onToggleHas={() => handleToggle(pinName, 'hasIt')}
           onToggleWants={() => handleToggle(pinName, 'wantsIt')}
           disabled={isDisabled}
