@@ -124,7 +124,7 @@ export default function RegisterPage() {
         {/* Login link */}
         <p className="mt-6 text-center text-sm text-slate-600">
           Already have an account?{' '}
-          <Link href="/auth/login" className="font-medium">
+          <Link href="/auth/login" prefetch={false} className="font-medium">
             Log in
           </Link>
         </p>

@@ -1,11 +1,10 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import ContactReveal from '@/components/ContactReveal'
 import {
   acceptConnectRequest,
   declineConnectRequest,
 } from '@/actions/connections'
+import { getCachedAuth } from '@/lib/supabase/session'
 
 /** Row returned from the connect_requests table with joined profile data */
 interface RequestWithProfile {
@@ -24,36 +23,8 @@ interface RequestWithProfile {
   recipient_social: string | null
 }
 
-function createSupabaseServer() {
-  const cookieStore = cookies()
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            )
-          } catch {
-            // Server Component — middleware keeps session refreshed
-          }
-        },
-      },
-    }
-  )
-}
-
 export default async function ConnectionsPage() {
-  const supabase = createSupabaseServer()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { supabase, user } = await getCachedAuth()
 
   if (!user) {
     redirect('/auth/login?next=/connections')

@@ -10,7 +10,7 @@
  */
 
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { getCachedAuth } from '@/lib/supabase/session'
 import { logout } from '@/actions/auth'
 
 // ---------------------------------------------------------------------------
@@ -23,10 +23,7 @@ async function handleLogout(_formData: FormData) {
 }
 
 export default async function NavBar() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user } = await getCachedAuth()
 
   return (
     <header className="border-b border-slate-200 bg-white shadow-sm">
@@ -63,6 +60,7 @@ export default async function NavBar() {
               <li>
                 <Link
                   href="/matches"
+                  prefetch={false}
                   className="rounded-md px-3 py-2 text-slate-600 no-underline transition-colors hover:bg-slate-100 hover:text-slate-900"
                 >
                   Matches
@@ -71,6 +69,7 @@ export default async function NavBar() {
               <li>
                 <Link
                   href="/connections"
+                  prefetch={false}
                   className="rounded-md px-3 py-2 text-slate-600 no-underline transition-colors hover:bg-slate-100 hover:text-slate-900"
                 >
                   Connections
@@ -79,6 +78,7 @@ export default async function NavBar() {
               <li>
                 <Link
                   href="/dashboard"
+                  prefetch={false}
                   className="rounded-md px-3 py-2 text-slate-600 no-underline transition-colors hover:bg-slate-100 hover:text-slate-900"
                 >
                   Dashboard
@@ -100,6 +100,7 @@ export default async function NavBar() {
               <li>
                 <Link
                   href="/auth/login"
+                  prefetch={false}
                   className="rounded-md px-3 py-2 text-slate-600 no-underline transition-colors hover:bg-slate-100 hover:text-slate-900"
                 >
                   Log in
@@ -108,6 +109,7 @@ export default async function NavBar() {
               <li>
                 <Link
                   href="/auth/register"
+                  prefetch={false}
                   className="btn-primary no-underline"
                 >
                   Register

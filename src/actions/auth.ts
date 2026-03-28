@@ -3,18 +3,32 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabase/env'
+import { getSupabaseServiceRoleKey } from '@/lib/supabase/service-role'
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+function getSiteUrl(): string {
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL?.trim()
+  if (explicit) {
+    return explicit.replace(/\/$/, '')
+  }
+  const vercel = process.env.NEXT_PUBLIC_VERCEL_URL?.trim()
+  if (vercel) {
+    return `https://${vercel.replace(/^https?:\/\//, '')}`
+  }
+  return 'http://localhost:3000'
+}
 
 /** Anon-key server client — used for auth operations that require the session
  *  cookie so Supabase can associate the request with the right user. */
 function createAnonClient() {
   const cookieStore = cookies()
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    getSupabaseUrl(),
+    getSupabaseAnonKey(),
     {
       cookies: {
         getAll() {
@@ -39,8 +53,8 @@ function createAnonClient() {
  *  row right after sign-up (the user has no session yet). */
 function createServiceClient() {
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    getSupabaseUrl(),
+    getSupabaseServiceRoleKey(),
     {
       cookies: {
         // No cookies needed for service-role requests.
@@ -114,13 +128,7 @@ export async function register(formData: FormData) {
 
   const supabase = createAnonClient()
 
-  // Determine the confirmation-email redirect URL.
-  // In production, NEXT_PUBLIC_SITE_URL must be set to the deployed domain.
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    process.env.NEXT_PUBLIC_VERCEL_URL
-      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-      : 'http://localhost:3000'
+  const siteUrl = getSiteUrl()
 
   const { data, error } = await supabase.auth.signUp({
     email,

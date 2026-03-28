@@ -35,10 +35,18 @@ export default function HomePage() {
           your collection.
         </p>
         <div className="flex flex-wrap justify-center gap-3 pt-2">
-          <Link href="/auth/register" className="btn-primary no-underline">
+          <Link
+            href="/auth/register"
+            prefetch={false}
+            className="btn-primary no-underline"
+          >
             Get started — it&apos;s free
           </Link>
-          <Link href="/auth/login" className="btn-secondary no-underline">
+          <Link
+            href="/auth/login"
+            prefetch={false}
+            className="btn-secondary no-underline"
+          >
             Log in
           </Link>
         </div>
@@ -170,7 +178,11 @@ export default function HomePage() {
         </ol>
 
         <div className="pt-2">
-          <Link href="/auth/register" className="btn-primary no-underline">
+          <Link
+            href="/auth/register"
+            prefetch={false}
+            className="btn-primary no-underline"
+          >
             Start trading
           </Link>
         </div>

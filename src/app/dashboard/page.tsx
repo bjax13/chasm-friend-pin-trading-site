@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getCachedAuth } from '@/lib/supabase/session'
 import PinGrid from '@/components/PinGrid'
 import ProfileForm from './ProfileForm'
 import type { PinInventory, Profile } from '@/lib/types'
@@ -13,13 +13,7 @@ export const metadata = {
 // ---------------------------------------------------------------------------
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
-
-  // Auth guard — middleware also handles this, but we check here for safety.
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
+  const { supabase, user, error: authError } = await getCachedAuth()
 
   if (authError || !user) {
     redirect('/auth/login')

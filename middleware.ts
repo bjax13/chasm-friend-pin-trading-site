@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabase/env'
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -7,8 +8,8 @@ export async function middleware(request: NextRequest) {
   })
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    getSupabaseUrl(),
+    getSupabaseAnonKey(),
     {
       cookies: {
         getAll() {
@@ -68,11 +69,14 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimisation)
-     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
+     * Only routes that need auth redirects or session refresh. Matching every
+     * page (incl. / and prefetched links) called getUser() on each request and
+     * could spike Supabase Auth rate limits.
      */
-    '/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
+    '/dashboard/:path*',
+    '/matches/:path*',
+    '/connections/:path*',
+    '/auth/login',
+    '/auth/register',
   ],
 }

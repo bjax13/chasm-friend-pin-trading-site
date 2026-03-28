@@ -3,12 +3,13 @@
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabase/env'
 
 function createSupabaseServerClient() {
   const cookieStore = cookies()
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    getSupabaseUrl(),
+    getSupabaseAnonKey(),
     {
       cookies: {
         getAll() {

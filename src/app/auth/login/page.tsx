@@ -97,7 +97,7 @@ export default function LoginPage() {
         {/* Register link */}
         <p className="mt-6 text-center text-sm text-slate-600">
           Don&apos;t have an account?{' '}
-          <Link href="/auth/register" className="font-medium">
+          <Link href="/auth/register" prefetch={false} className="font-medium">
             Create one for free
           </Link>
         </p>

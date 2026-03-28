@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation'
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { createAdminClient } from '@/lib/supabase/server'
+import { getCachedAuth } from '@/lib/supabase/session'
 import MatchCard from '@/components/MatchCard'
 import type { Match, ConnectRequest, PinName } from '@/lib/types'
 import { PIN_NAMES } from '@/lib/pins'
@@ -18,9 +20,10 @@ import { PIN_NAMES } from '@/lib/pins'
  * Contact information is NOT included here — it is only revealed on the
  * /connections page once both users have accepted a connect request.
  */
-async function getMatches(userId: string): Promise<Match[]> {
-  // The session-aware client is used for data the current user owns (RLS passes).
-  const anon = await createClient()
+async function getMatches(
+  userId: string,
+  anon: SupabaseClient
+): Promise<Match[]> {
   // The admin client bypasses RLS — used only to read other users' pin_inventory.
   // Contact info is NEVER read via this client on this page.
   const admin = createAdminClient()
@@ -169,16 +172,13 @@ async function getMatches(userId: string): Promise<Match[]> {
 // ---------------------------------------------------------------------------
 
 export default async function MatchesPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { supabase, user } = await getCachedAuth()
 
   if (!user) {
     redirect('/auth/login?next=/matches')
   }
 
-  const matches = await getMatches(user.id)
+  const matches = await getMatches(user.id, supabase)
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-8">
