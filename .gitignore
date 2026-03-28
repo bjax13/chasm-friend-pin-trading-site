@@ -1,0 +1,10 @@
+node_modules
+.env
+.env*.local
+
+# Next.js build output (can embed NEXT_PUBLIC_* and paths — never commit)
+.next/
+out/
+
+# Vercel project link / tokens
+.vercel
